@@ -31,7 +31,7 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    echo "Running Unit Testss"
+                    echo "Running Unit Tests"
                 }
                 sh 'npm test' // Ensure tests are running
             }
