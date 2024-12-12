@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        SONARQUBE_SERVER = 'http://localhost:9000'
+        SONARQUBE_TOKEN = 'sqp_d204145f061718055e5c36db128c56be00d43f10'
+        SSH_KEY_PATH = 'C:/Users/areopago/Desktop/ssh-key-jenkins.pem'
+        EC2_USER = 'ubuntu'
+        EC2_IP = '18.188.137.85'
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'master', url: 'https://github.com/devopsanass/devops.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Run SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    sonar-scanner \
+                        -Dsonar.projectKey=devops \
+                        -Dsonar.sources=src \
+                        -Dsonar.host.url=${SONARQUBE_SERVER} \
+                        -Dsonar.login=${SONARQUBE_TOKEN}
+                    '''
+                }
+            }
+        }
+
+        stage('Build Project') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['ssh-key-jenkins']) {
+                    sh '''
+                    scp -i ${SSH_KEY_PATH} -r dist/ ${EC2_USER}@${EC2_IP}:/var/www/html/
+                    '''
+                }
+            }
+        }
+
+        stage('Restart Nginx on EC2') {
+            steps {
+                sshagent(['ssh-key-jenkins']) {
+                    sh '''
+                    ssh -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} << EOF
+                    sudo systemctl restart nginx
+                    EOF
+                    '''
+                }
+            }
+        }
+    }
+}
