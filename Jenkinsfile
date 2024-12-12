@@ -12,24 +12,36 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
+                script {
+                    echo "Cloning the repository"
+                }
                 git branch: 'master', url: 'https://github.com/devopsanass/devops.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm ci'
+                script {
+                    echo "Installing dependencies"
+                }
+                sh 'npm ci' // Ensure this command is executed
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                sh 'npm test'
+                script {
+                    echo "Running Unit Tests"
+                }
+                sh 'npm test' // Ensure tests are running
             }
         }
 
         stage('Run SonarQube Analysis') {
             steps {
+                script {
+                    echo "Running SonarQube Analysis"
+                }
                 withSonarQubeEnv('SonarQube') {
                     sh '''
                     sonar-scanner \
@@ -44,12 +56,18 @@ pipeline {
 
         stage('Build Project') {
             steps {
-                sh 'npm run build'
+                script {
+                    echo "Building the project"
+                }
+                sh 'npm run build' // Ensure the build is happening
             }
         }
 
         stage('Deploy to EC2') {
             steps {
+                script {
+                    echo "Deploying to EC2"
+                }
                 sshagent(['ssh-key-jenkins']) {
                     sh '''
                     scp -i ${SSH_KEY_PATH} -r dist/ ${EC2_USER}@${EC2_IP}:/var/www/html/
@@ -60,6 +78,9 @@ pipeline {
 
         stage('Restart Nginx on EC2') {
             steps {
+                script {
+                    echo "Restarting Nginx on EC2"
+                }
                 sshagent(['ssh-key-jenkins']) {
                     sh '''
                     ssh -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} << EOF
