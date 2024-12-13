@@ -1,5 +1,5 @@
 pipeline {
-    agent any  // This defines the agent for the whole pipeline (can be overridden in stages)
+    agent none  // This defines the agent for the whole pipeline (can be overridden in stages)
 
     environment {
         SONARQUBE_SERVER = 'http://localhost:9000'
