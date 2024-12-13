@@ -12,36 +12,28 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                script {
-                    echo "Cloning the repository"
-                }
+                echo 'Cloning repository...'
                 git branch: 'master', url: 'https://github.com/devopsanass/devops.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                script {
-                    echo "Installing dependencies"
-                }
-                sh 'npm ci' // Ensure this command is executed
+                echo 'Installing dependencies...'
+                sh 'npm ci'
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                script {
-                    echo "Running Unit Testss"
-                }
-                sh 'npm test' // Ensure tests are running
+                echo 'Running unit tests...'
+                sh 'npm test'
             }
         }
 
         stage('Run SonarQube Analysis') {
             steps {
-                script {
-                    echo "Running SonarQube Analysis"
-                }
+                echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('SonarQube') {
                     sh '''
                     sonar-scanner \
@@ -56,18 +48,14 @@ pipeline {
 
         stage('Build Project') {
             steps {
-                script {
-                    echo "Building the project"
-                }
-                sh 'npm run build' // Ensure the build is happening
+                echo 'Building project...'
+                sh 'npm run build'
             }
         }
 
         stage('Deploy to EC2') {
             steps {
-                script {
-                    echo "Deploying to EC2"
-                }
+                echo 'Deploying to EC2...'
                 sshagent(['ssh-key-jenkins']) {
                     sh '''
                     scp -i ${SSH_KEY_PATH} -r dist/ ${EC2_USER}@${EC2_IP}:/var/www/html/
@@ -78,9 +66,7 @@ pipeline {
 
         stage('Restart Nginx on EC2') {
             steps {
-                script {
-                    echo "Restarting Nginx on EC2"
-                }
+                echo 'Restarting Nginx on EC2...'
                 sshagent(['ssh-key-jenkins']) {
                     sh '''
                     ssh -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} << EOF
